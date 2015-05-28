@@ -27,6 +27,10 @@ var websites = {
 		module:  'PWDRESET_reddit',
 		file:    'formulas/reddit.js',
 	},
+	'yelp.com' : {
+		module:  'PWDRESET_yelp',
+		file:    'formulas/yelp.js',
+	},
 };
 
 ////////////////////////////////////////////////////////////////////////////////
