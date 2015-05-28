@@ -3,6 +3,10 @@ var websites = {
 		module:  'PWDRESET_airbnb',
 		file:    'formulas/airbnb.js',
 	},
+	'box.com' : {
+		module:  'PWDRESET_box',
+		file:    'formulas/box.js',
+	},
 	'facebook.com' : {
 		module:  'PWDRESET_facebook',
 		file:    'formulas/facebook.js',
