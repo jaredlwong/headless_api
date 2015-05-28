@@ -1,4 +1,8 @@
 var websites = {
+	'8tracks.com' : {
+		module:  'PWDRESET_8tracks',
+		file:    'formulas/8tracks.js',
+	},
 	'airbnb.com' : {
 		module:  'PWDRESET_airbnb',
 		file:    'formulas/airbnb.js',
