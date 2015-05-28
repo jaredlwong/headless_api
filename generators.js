@@ -132,6 +132,6 @@ exports.reset_generator = function(module) {
 		}, function then() {},
 		function timeout() {
 			this.echo('false');
-		}, 20000);
+		});
 	};
 };

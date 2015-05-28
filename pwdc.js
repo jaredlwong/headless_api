@@ -3,6 +3,7 @@ var casper = require('casper').create({
 		'formulas/reddit.js',
 		'formulas/airbnb.js',
 		'formulas/hackernews.js',
+		'formulas/github.js',
 	],
 });
 
@@ -26,8 +27,12 @@ var add_website = function(name, module) {
 	};
 };
 
-add_website('github.com', 'github');
 add_website('facebook.com', 'facebook');
+
+website_password_funcs['github.com'] = {
+	ensure: generators.ensure_generator('PWDRESET_github'),
+	reset:  generators.reset_generator('PWDRESET_github')
+};
 
 website_password_funcs['airbnb.com'] = {
 	ensure: generators.ensure_generator('PWDRESET_airbnb'),
