@@ -1,30 +1,32 @@
 var require = patchRequire(require);
 
 exports.ensure = function(username, pwd) {
-	casper.start('https://www.facebook.com');
+	casper.start('https://reddit.com/login');
 	casper.then(function() {
-		this.fill("#login_form", {
-			'email': username,
-			'pass': pwd
+		this.fill("#login-form", {
+			'user': username,
+			'passwd': pwd
 		}, true);
 	});
-	casper.then(function() {
-		var authenticated = this.evaluate(function() {
-			return document.cookie.indexOf("c_user") > -1;
-		});
-		this.echo(authenticated);
-	});
+	casper.waitForUrl(/reddit\.com\/$/,
+		function() { this.echo('true'); },
+		function() { this.echo('false'); },
+		4000);
 };
 
 exports.reset = function(username, old_pwd, new_pwd) {
-	casper.start('https://www.facebook.com');
+	casper.start('https://reddit.com/login');
 	casper.then(function() {
-		this.fill("#login_form", {
-			'email': username,
-			'pass': old_pwd
+		this.fill("#login-form", {
+			'user': username,
+			'passwd': old_pwd
 		}, true);
 	});
-	casper.thenOpen('https://www.facebook.com/settings?tab=account&section=password');
+	casper.waitForUrl(/reddit\.com\/$/,
+		function() { this.echo('true'); },
+		function() { this.echo('false'); },
+		4000);
+	casper.thenOpen('https://www.reddit.com/prefs/update/');
 	casper.then(function() {
 		this.evaluate(function(password_old, password_new) {
 			// http://stackoverflow.com/questions/645555/should-jquerys-form-submit-not-trigger-onsubmit-within-the-form-tag
@@ -41,14 +43,18 @@ exports.reset = function(username, old_pwd, new_pwd) {
 				//if it was prevented, make sure we don't get a build up of buttons
 				form.removeChild(button);
 			}
-			var change_password_form = document.querySelector("form[action*=password]");
-			change_password_form.elements["password_old"].value = password_old;
-			change_password_form.elements["password_new"].value = password_new;
-			change_password_form.elements["password_confirm"].value = password_new;
+			var change_password_form = document.querySelector("#pref-update-password");
+			change_password_form.elements["curpass"].value = password_old;
+			change_password_form.elements["newpass"].value = password_new;
+			change_password_form.elements["verpass"].value = password_new;
 			submitForm(change_password_form);
 		}, old_pwd, new_pwd);
 	});
-	casper.waitForText("Your Password Has Been Changed", function() {
-		this.capture('facebook.png');
-	}, function() {}, 4000);
+	casper.waitForText("your password has been updated", function() {
+		this.echo("passed");
+		this.capture('reddit-xxx.png');
+	}, function() {
+		this.echo("failed");
+		this.capture('reddit-xxx.png');
+	}, 4000);
 };

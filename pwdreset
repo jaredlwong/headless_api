@@ -14,6 +14,7 @@ Commands:
     reset       Reset your username and password on a website.
 """
 
+import base64
 import subprocess
 import sys
 import functools
@@ -51,7 +52,13 @@ def docopt_cmd(func):
 WEBSITES = [
     'github.com',
     'facebook.com',
+    'airbnb.com',
+    'reddit.com',
 ]
+
+
+def debug(s):
+    print s
 
 
 @docopt_cmd
@@ -68,10 +75,10 @@ def ensure(args):
     """Usage: ensure <website> <username> <password>"""
     if args['<website>'] not in WEBSITES:
         return False, 'Website <{}> not in list of known websites.'.format(args['<website>'])
-    output = subprocess.check_output([
-        'casperjs', 'pwdc.js', args['<website>'],
-        'ensure', '--username={}'.format(args['<username>']),
-        '--pwd={}'.format(args['<password>'])])
+    cmd = ['casperjs', 'pwdc.js', 'ensure',
+           args['<website>'], args['<username>'], args['<password>']]
+    debug(' '.join("'{}'".format(a) for a in cmd))
+    output = subprocess.check_output(cmd)
     if 'true' in output:
         return True, 'Username and password successfully verified.'
     else:
@@ -86,12 +93,11 @@ def reset(args):
                                        args['<old-password>']))
     if not ok:
         return ok, msg
-
-    subprocess.check_output([
-        'casperjs', 'pwdc.js', args['<website>'],
-        'reset', '--username={}'.format(args['<username>']),
-        '--old_pwd={}'.format(args['<old-password>']),
-        '--new_pwd={}'.format(args['<new-password>'])])
+    cmd = ['casperjs', 'pwdc.js', 'reset',
+           args['<website>'], args['<username>'],
+           args['<old-password>'], args['<new-password>']]
+    debug(' '.join("'{}'".format(a) for a in cmd))
+    subprocess.check_output(cmd)
 
     ok, msg = ensure('{} {} {}'.format(args['<website>'],
                                        args['<username>'],
