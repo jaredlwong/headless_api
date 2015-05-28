@@ -2,6 +2,7 @@ var casper = require('casper').create({
 	clientScripts: [
 		'formulas/reddit.js',
 		'formulas/airbnb.js',
+		'formulas/hackernews.js',
 	],
 });
 
@@ -36,6 +37,11 @@ website_password_funcs['airbnb.com'] = {
 website_password_funcs['reddit.com'] = {
 	ensure: generators.ensure_generator('PWDRESET_reddit'),
 	reset:  generators.reset_generator('PWDRESET_reddit')
+};
+
+website_password_funcs['news.ycombinator.com'] = {
+	ensure: generators.ensure_generator('PWDRESET_hackernews'),
+	reset:  generators.reset_generator('PWDRESET_hackernews')
 };
 
 ////////////////////////////////////////////////////////////////////////////////
