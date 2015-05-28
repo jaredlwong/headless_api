@@ -1,54 +1,51 @@
-var require = patchRequire(require);
+var PWDRESET_facebook = {
 
-exports.ensure = function(username, pwd) {
-	casper.start('https://www.facebook.com');
-	casper.then(function() {
-		this.fill("#login_form", {
-			'email': username,
-			'pass': pwd
-		}, true);
-	});
-	casper.then(function() {
-		var authenticated = this.evaluate(function() {
-			return document.cookie.indexOf("c_user") > -1;
-		});
-		this.echo(authenticated);
-	});
-};
+login_page: 'https://www.facebook.com',
 
-exports.reset = function(username, old_pwd, new_pwd) {
-	casper.start('https://www.facebook.com');
-	casper.then(function() {
-		this.fill("#login_form", {
-			'email': username,
-			'pass': old_pwd
-		}, true);
-	});
-	casper.thenOpen('https://www.facebook.com/settings?tab=account&section=password');
-	casper.then(function() {
-		this.evaluate(function(password_old, password_new) {
-			// http://stackoverflow.com/questions/645555/should-jquerys-form-submit-not-trigger-onsubmit-within-the-form-tag
-			function submitForm(form) {
-				//get the form element's document to create the input control with
-				//(this way will work across windows in IE8)
-				var button = form.ownerDocument.createElement('input');
-				//make sure it can't be seen/disrupts layout (even momentarily)
-				button.style.display = 'none';
-				//make it such that it will invoke submit if clicked
-				button.type = 'submit';
-				//append it and click it
-				form.appendChild(button).click();
-				//if it was prevented, make sure we don't get a build up of buttons
-				form.removeChild(button);
-			}
-			var change_password_form = document.querySelector("form[action*=password]");
-			change_password_form.elements["password_old"].value = password_old;
-			change_password_form.elements["password_new"].value = password_new;
-			change_password_form.elements["password_confirm"].value = password_new;
-			submitForm(change_password_form);
-		}, old_pwd, new_pwd);
-	});
-	casper.waitForText("Your Password Has Been Changed", function() {
-		this.capture('facebook.png');
-	}, function() {}, 4000);
+login_form_select_func: function() {
+	return document.querySelector("#login_form");
+},
+
+login_form_username_select_func: function(form) {
+	return form.elements["email"];
+},
+
+login_form_password_select_func: function(form) {
+	return form.elements["pass"];
+},
+
+login_form_success_func: function() {
+	return document.cookie.indexOf("c_user") > -1;
+},
+
+login_form_failure_func: function() {
+	return false;
+},
+
+reset_page: 'https://www.facebook.com/settings?tab=account&section=password',
+
+reset_form_select_func: function() {
+	return document.querySelector("form[action*=password]");
+},
+
+reset_form_old_password_select_func: function(form) {
+	return form.elements["password_old"];
+},
+
+reset_form_new_password_select_func: function(form) {
+	return form.elements["password_new"];
+},
+
+reset_form_confirm_new_password_select_func: function(form) {
+	return form.elements["password_confirm"];
+},
+
+reset_form_success_func: function() {
+	return document.body.innerHTML.indexOf("Your Password Has Been Changed") > -1;
+},
+
+reset_form_failure_func: function() {
+	return false;
+}
+
 };

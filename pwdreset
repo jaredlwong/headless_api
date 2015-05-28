@@ -54,6 +54,7 @@ WEBSITES = [
     'facebook.com',
     'airbnb.com',
     'reddit.com',
+    'news.ycombinator.com',
 ]
 
 

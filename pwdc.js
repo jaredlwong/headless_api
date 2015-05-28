@@ -1,11 +1,25 @@
-var casper = require('casper').create({
-	clientScripts: [
-		'formulas/reddit.js',
-		'formulas/airbnb.js',
-		'formulas/hackernews.js',
-		'formulas/github.js',
-	],
-});
+var websites = {
+	'airbnb.com' : {
+		module:  'PWDRESET_airbnb',
+		file:    'formulas/airbnb.js',
+	},
+	'facebook.com' : {
+		module:  'PWDRESET_facebook',
+		file:    'formulas/facebook.js',
+	},
+	'github.com': {
+		module:  'PWDRESET_github',
+		file:    'formulas/github.js',
+	},
+	'news.ycombinator.com': {
+		module:  'PWDRESET_hackernews',
+		file:    'formulas/hackernews.js',
+	},
+	'reddit.com' : {
+		module:  'PWDRESET_reddit',
+		file:    'formulas/reddit.js',
+	},
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -17,55 +31,24 @@ var BLANK_HTML = "file://" + cwd + "/blank.html";
 
 var generators = require('./generators');
 
-var website_password_funcs = {};
-
-var add_website = function(name, module) {
-	var website = require('./formulas/' + module);
-	website_password_funcs[name] = {
-		'ensure': website.ensure,
-		'reset': website.reset
-	};
-};
-
-add_website('facebook.com', 'facebook');
-
-website_password_funcs['github.com'] = {
-	ensure: generators.ensure_generator('PWDRESET_github'),
-	reset:  generators.reset_generator('PWDRESET_github')
-};
-
-website_password_funcs['airbnb.com'] = {
-	ensure: generators.ensure_generator('PWDRESET_airbnb'),
-	reset:  generators.reset_generator('PWDRESET_airbnb')
-};
-
-website_password_funcs['reddit.com'] = {
-	ensure: generators.ensure_generator('PWDRESET_reddit'),
-	reset:  generators.reset_generator('PWDRESET_reddit')
-};
-
-website_password_funcs['news.ycombinator.com'] = {
-	ensure: generators.ensure_generator('PWDRESET_hackernews'),
-	reset:  generators.reset_generator('PWDRESET_hackernews')
-};
-
-////////////////////////////////////////////////////////////////////////////////
+var casper = require('casper').create();
 
 var func = casper.cli.get(0);
 var website = casper.cli.get(1);
-var website_funcs = website_password_funcs[website];
+
+casper.options.clientScripts = [websites[website]['file']];
 
 casper.start(BLANK_HTML);
 
 if (func === 'ensure') {
 	var username = casper.cli.get(2);
 	var pwd = casper.cli.get(3);
-	website_funcs['ensure'](username, pwd);
+	generators.ensure_generator(websites[website]['module'])(username, pwd);
 } else if (func === 'reset') {
 	var username = casper.cli.get(2);
 	var old_pwd = casper.cli.get(3);
 	var new_pwd = casper.cli.get(4);
-	website_funcs['reset'](username, old_pwd, new_pwd);
+	generators.reset_generator(websites[website]['module'])(username, old_pwd, new_pwd);
 }
 
 casper.run();
