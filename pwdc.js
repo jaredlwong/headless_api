@@ -1,4 +1,19 @@
-var casper = require('casper').create();
+var casper = require('casper').create({
+	clientScripts: [
+		'formulas/reddit.js',
+		'formulas/airbnb.js',
+	],
+});
+
+////////////////////////////////////////////////////////////////////////////////
+
+var fs = require('fs');
+var cwd = fs.absolute('.');
+var BLANK_HTML = "file://" + cwd + "/blank.html";
+
+////////////////////////////////////////////////////////////////////////////////
+
+var generators = require('./generators');
 
 var website_password_funcs = {};
 
@@ -12,14 +27,24 @@ var add_website = function(name, module) {
 
 add_website('github.com', 'github');
 add_website('facebook.com', 'facebook');
-add_website('airbnb.com', 'airbnb');
-add_website('reddit.com', 'reddit');
+
+website_password_funcs['airbnb.com'] = {
+	ensure: generators.ensure_generator('PWDRESET_airbnb'),
+	reset:  generators.reset_generator('PWDRESET_airbnb')
+};
+
+website_password_funcs['reddit.com'] = {
+	ensure: generators.ensure_generator('PWDRESET_reddit'),
+	reset:  generators.reset_generator('PWDRESET_reddit')
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 
 var func = casper.cli.get(0);
 var website = casper.cli.get(1);
 var website_funcs = website_password_funcs[website];
+
+casper.start(BLANK_HTML);
 
 if (func === 'ensure') {
 	var username = casper.cli.get(2);
