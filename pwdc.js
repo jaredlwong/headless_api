@@ -2,6 +2,7 @@ var websites = {
 	'8tracks.com'           : 'formulas/8tracks.js',
 	'airbnb.com'            : 'formulas/airbnb.js',
 	'box.com'               : 'formulas/box.js',
+	'comcast.net'           : 'formulas/comcast.js',
 	'evernote.com'          : 'formulas/evernote.js',
 	'eventbrite.com'        : 'formulas/eventbrite.js',
 	'facebook.com'          : 'formulas/facebook.js',
