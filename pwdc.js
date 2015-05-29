@@ -3,6 +3,7 @@ var websites = {
 	'airbnb.com'            : 'formulas/airbnb.js',
 	'box.com'               : 'formulas/box.js',
 	'evernote.com'          : 'formulas/evernote.js',
+	'eventbrite.com'        : 'formulas/eventbrite.js',
 	'facebook.com'          : 'formulas/facebook.js',
 	'github.com'            : 'formulas/github.js',
 	'news.ycombinator.com'  : 'formulas/hackernews.js',
