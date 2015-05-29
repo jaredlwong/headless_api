@@ -1,51 +1,38 @@
-var PWDRESET_8tracks = {
+function login(username, password, success_obj) {
+	casper.thenOpen('http://8tracks.com/login');
 
-login_page: 'http://8tracks.com/login',
-
-login_form_select_func: function() {
-	return document.querySelector("#login_form");
-},
-
-login_form_username_select_func: function(form) {
-	return form.elements["login"];
-},
-
-login_form_password_select_func: function(form) {
-	return form.elements["password"];
-},
-
-login_form_success_func: function() {
-	return /8tracks\.com\/$/.test(location.href);
-},
-
-login_form_failure_func: function() {
-	return /8tracks\.com\/sessions$/.test(location.href);
-},
-
-reset_page: 'https://8tracks.com/edit_password',
-
-reset_form_select_func: function() {
-	return document.querySelector("#set_password_form");
-},
-
-reset_form_old_password_select_func: function(form) {
-	return form.elements["user[password]"];
-},
-
-reset_form_new_password_select_func: function(form) {
-	return form.elements["user[password]"];
-},
-
-reset_form_confirm_new_password_select_func: function(form) {
-	return form.elements["user[password]"];
-},
-
-reset_form_success_func: function() {
-	return document.body.innerHTML.indexOf("Your password was reset.") > -1;
-},
-
-reset_form_failure_func: function() {
-	return false;
-},
-
+	casper.fillMagically("#login_form", {
+		"login": username,
+		"password": password,
+	}, function _success_failure() {
+		return {
+			success: /8tracks\.com\/$/.test(location.href),
+			failure: /8tracks\.com\/sessions$/.test(location.href),
+		};
+	}, success_obj);
 };
+exports.login = login;
+
+
+function reset(username, old_password, new_password, success) {
+	var login_success = {};
+	login(username, old_password, login_success);
+	casper.then(function() {
+		if (!login_success.value) {
+			success.value = false;
+			casper.bypass(1000);
+		}
+	});
+
+	casper.thenOpen('https://8tracks.com/edit_password');
+
+	casper.fillMagically("#set_password_form", {
+		"user[password]": old_password,
+	}, function _success_failure() {
+		return {
+			success: document.body.innerHTML.indexOf("Your password was reset.") > -1,
+			failure: false,
+		};
+	}, success);
+};
+exports.reset = reset;

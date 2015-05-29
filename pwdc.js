@@ -1,36 +1,13 @@
 var websites = {
-	'8tracks.com' : {
-		module:  'PWDRESET_8tracks',
-		file:    'formulas/8tracks.js',
-	},
-	'airbnb.com' : {
-		module:  'PWDRESET_airbnb',
-		file:    'formulas/airbnb.js',
-	},
-	'box.com' : {
-		module:  'PWDRESET_box',
-		file:    'formulas/box.js',
-	},
-	'facebook.com' : {
-		module:  'PWDRESET_facebook',
-		file:    'formulas/facebook.js',
-	},
-	'github.com': {
-		module:  'PWDRESET_github',
-		file:    'formulas/github.js',
-	},
-	'news.ycombinator.com': {
-		module:  'PWDRESET_hackernews',
-		file:    'formulas/hackernews.js',
-	},
-	'reddit.com' : {
-		module:  'PWDRESET_reddit',
-		file:    'formulas/reddit.js',
-	},
-	'yelp.com' : {
-		module:  'PWDRESET_yelp',
-		file:    'formulas/yelp.js',
-	},
+	'8tracks.com'           : 'formulas/8tracks.js',
+	'airbnb.com'            : 'formulas/airbnb.js',
+	'box.com'               : 'formulas/box.js',
+	'evernote.com'          : 'formulas/evernote.js',
+	'facebook.com'          : 'formulas/facebook.js',
+	'github.com'            : 'formulas/github.js',
+	'news.ycombinator.com'  : 'formulas/hackernews.js',
+	'reddit.com'            : 'formulas/reddit.js',
+	'yelp.com'              : 'formulas/yelp.js',
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -41,26 +18,40 @@ var BLANK_HTML = "file://" + cwd + "/blank.html";
 
 ////////////////////////////////////////////////////////////////////////////////
 
-var generators = require('./generators');
+var casper_module = require('casper');
+var casper_extensions = require('casper_extensions');
 
-var casper = require('casper').create();
+////////////////////////////////////////////////////////////////////////////////
+
+var casper = casper_module.create({
+	verbose: true,
+	logLevel: 'debug'
+});
 
 var func = casper.cli.get(0);
 var website = casper.cli.get(1);
 
-casper.options.clientScripts = [websites[website]['file']];
+var website_module = require(websites[website]);
 
 casper.start(BLANK_HTML);
 
 if (func === 'ensure') {
 	var username = casper.cli.get(2);
-	var pwd = casper.cli.get(3);
-	generators.ensure_generator(websites[website]['module'])(username, pwd);
+	var password = casper.cli.get(3);
+	var success = {};
+	website_module.login(username, password, success);
+	casper.run(function() {
+		this.echo(success.value);
+		this.exit();
+	});
 } else if (func === 'reset') {
 	var username = casper.cli.get(2);
-	var old_pwd = casper.cli.get(3);
-	var new_pwd = casper.cli.get(4);
-	generators.reset_generator(websites[website]['module'])(username, old_pwd, new_pwd);
+	var old_password = casper.cli.get(3);
+	var new_password = casper.cli.get(4);
+	var success = {};
+	website_module.reset(username, old_password, new_password, success);
+	casper.run(function() {
+		this.echo(success.value);
+		this.exit();
+	});
 }
-
-casper.run();

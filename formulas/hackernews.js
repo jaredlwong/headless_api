@@ -1,51 +1,39 @@
-var PWDRESET_hackernews = {
+function login(username, password, success_obj) {
+	casper.thenOpen('https://news.ycombinator.com/login');
 
-login_page: 'https://news.ycombinator.com/login',
-
-login_form_select_func: function() {
-	return document.querySelector("form[action=login]");
-},
-
-login_form_username_select_func: function(form) {
-	return form.elements["acct"];
-},
-
-login_form_password_select_func: function(form) {
-	return form.elements["pw"];
-},
-
-login_form_success_func: function() {
-	return /news\.ycombinator\.com\/$/.test(location.href);
-},
-
-login_form_failure_func: function() {
-	return document.body.innerHTML.indexOf("Bad login") > -1;
-},
-
-reset_page: 'https://news.ycombinator.com/changepw',
-
-reset_form_select_func: function() {
-	return document.querySelector("form[action='/r']");
-},
-
-reset_form_old_password_select_func: function(form) {
-	return form.elements["oldpw"];
-},
-
-reset_form_new_password_select_func: function(form) {
-	return form.elements["pw"];
-},
-
-reset_form_confirm_new_password_select_func: function(form) {
-	return form.elements["pw"];
-},
-
-reset_form_success_func: function() {
-	return /news\.ycombinator\.com\/news$/.test(location.href);
-},
-
-reset_form_failure_func: function() {
-	return /news\.ycombinator\.com\/x/.test(location.href);
-}
-
+	casper.fillMagically("form[action=login]", {
+		"acct": username,
+		"pw": password,
+	}, function _success_failure() {
+		return {
+			success: /news\.ycombinator\.com\/$/.test(location.href),
+			failure: document.body.innerHTML.indexOf("Bad login") > -1,
+		};
+	}, success_obj);
 };
+exports.login = login;
+
+
+function reset(username, old_password, new_password, success) {
+	var login_success = {};
+	login(username, old_password, login_success);
+	casper.then(function() {
+		if (!login_success.value) {
+			success.value = false;
+			casper.bypass(1000);
+		}
+	});
+
+	casper.thenOpen('https://news.ycombinator.com/changepw');
+
+	casper.fillMagically("form[action='/r']", {
+		"oldpw": old_password,
+		"pw": new_password,
+	}, function _success_failure() {
+		return {
+			success: /news\.ycombinator\.com\/news$/.test(location.href),
+			failure: /news\.ycombinator\.com\/x/.test(location.href),
+		};
+	}, success);
+};
+exports.reset = reset;
