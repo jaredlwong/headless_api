@@ -53,6 +53,35 @@ function find_module(formulas_dir, website) {
   return null;
 }
 
+// http://stackoverflow.com/a/9924463
+var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+var ARGUMENT_NAMES = /([^\s,]+)/g;
+function getParamNames(func) {
+  var fnStr = func.toString().replace(STRIP_COMMENTS, '');
+  var result = fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
+  if(result === null)
+     result = [];
+  return result;
+}
+
+function list_apis(casper, formulas_dir) {
+  var files = fs.list(formulas_dir);
+  for (var i = 0; i < files.length; i++) {
+    if (files[i] === '.' || files[i] === '..') {
+      continue;
+    }
+    var formula = require(path_join(formulas_dir, files[i]));
+    casper.echo(formula.name + ':');
+    for (var exp in formula) {
+      if (typeof formula[exp] == 'function') {
+        // cut off casper and callback args
+        var api_args = getParamNames(formula[exp]).slice(1, -1);
+        casper.echo('\t' + exp + ' ' + api_args.join(' '));
+      }
+    }
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 var casper_module = require('casper');
@@ -71,9 +100,13 @@ var formulas_dir;
 if (_casper.cli.has("formulas-dir")) {
   formulas_dir = fs.absolute(_casper.cli.get("formulas-dir"));
 } else {
-  formulas_dir = fs.absolute('../formulas');
+  formulas_dir = fs.absolute('./formulas');
 }
 
+if (_casper.cli.get(0) === 'list') {
+  list_apis(_casper, formulas_dir);
+  _casper.exit(0);
+}
 
 // Display dots after the completion of each step
 // _casper.on('step.complete', function(resource) {
