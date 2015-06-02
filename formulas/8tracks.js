@@ -1,38 +1,40 @@
-function login(username, password, success_obj) {
-	casper.thenOpen('http://8tracks.com/login');
-
-	casper.fillMagically("#login_form", {
-		"login": username,
-		"password": password,
-	}, function _success_failure() {
-		return {
-			success: /8tracks\.com\/$/.test(location.href),
-			failure: /8tracks\.com\/sessions$/.test(location.href),
-		};
-	}, success_obj);
-};
+exports.name  = '8tracks.com';
 exports.login = login;
+exports.reset_password = reset_password;
+exports.length = 30;
 
 
-function reset(username, old_password, new_password, success) {
-	var login_success = {};
-	login(username, old_password, login_success);
-	casper.then(function() {
-		if (!login_success.value) {
-			success.value = false;
-			casper.bypass(1000);
-		}
-	});
+function login(casper, username, password, success_callback) {
+  casper.thenOpen('http://8tracks.com/login');
+  casper.waitForUrl('http://8tracks.com/login');
 
-	casper.thenOpen('https://8tracks.com/edit_password');
-
-	casper.fillMagically("#set_password_form", {
-		"user[password]": old_password,
-	}, function _success_failure() {
-		return {
-			success: document.body.innerHTML.indexOf("Your password was reset.") > -1,
-			failure: false,
-		};
-	}, success);
+  casper.fillMagically("#login_form", {
+    "login": username,
+    "password": password,
+  }, function success() {
+    return /8tracks\.com\/$/.test(location.href);
+  }, function failure() {
+    return /8tracks\.com\/sessions$/.test(location.href);
+  }, success_callback);
 };
-exports.reset = reset;
+
+
+function reset_password(casper, username, old_password, new_password, success_callback) {
+  login(casper, username, old_password, function login_success(success) {
+    if (!success) {
+      success_callback(success);
+      casper.bypass(1000);
+    }
+  });
+
+  casper.thenOpen('https://8tracks.com/edit_password');
+  casper.waitForUrl('https://8tracks.com/edit_password');
+
+  casper.fillMagically("#set_password_form", {
+    "user[password]": new_password,
+  }, function success() {
+      return document.body.innerHTML.indexOf("Your password was reset.") > -1;
+  }, function failure() {
+      return false;
+  }, success_callback);
+};

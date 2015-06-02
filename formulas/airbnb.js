@@ -1,40 +1,41 @@
-function login(username, password, success_obj) {
-	casper.thenOpen('https://www.airbnb.com/login');
-
-	casper.fillMagically("form.login-form", {
-		"email": username,
-		"password": password,
-	}, function _success_failure() {
-		return {
-			success: /airbnb\.com\/dashboard$/.test(location.href),
-			failure: false,
-		};
-	}, success_obj);
-};
+exports.name = 'airbnb.com';
 exports.login = login;
+exports.reset_password = reset_password;
 
 
-function reset(username, old_password, new_password, success) {
-	var login_success = {};
-	login(username, old_password, login_success);
-	casper.then(function() {
-		if (!login_success.value) {
-			success.value = false;
-			casper.bypass(1000);
-		}
-	});
+function login(casper, username, password, success_callback) {
+  casper.thenOpen('https://www.airbnb.com/login');
+  casper.waitForUrl('https://www.airbnb.com/login');
 
-	casper.thenOpen('https://www.airbnb.com/users/security');
-
-	casper.fillMagically("form[action*=password]", {
-		"old_password": old_password,
-		"user[password]": new_password,
-		"user[password_confirmation]": new_password,
-	}, function _success_failure() {
-		return {
-			success: document.querySelector(".flash-container").innerHTML.indexOf("Your password was successfully updated.") > -1,
-			failure: false,
-		};
-	}, success);
+  casper.fillMagically("form.login-form", {
+    "email": username,
+    "password": password,
+  }, function success() {
+    return /airbnb\.com\/dashboard/.test(location.href);
+  }, function failure() {
+    return false;
+  }, success_callback);
 };
-exports.reset = reset;
+
+
+function reset_password(casper, username, old_password, new_password, success_callback) {
+  login(casper, username, old_password, function login_success(success) {
+    if (!success) {
+      success_callback(success);
+      casper.bypass(1000);
+    }
+  });
+
+  casper.thenOpen('https://www.airbnb.com/users/security');
+  casper.waitForUrl('https://www.airbnb.com/users/security');
+
+  casper.fillMagically("form[action*=password]", {
+    "old_password": old_password,
+    "user[password]": new_password,
+    "user[password_confirmation]": new_password,
+  }, function success() {
+    return document.querySelector(".flash-container").innerHTML.indexOf("Your password was successfully updated.") > -1;
+  }, function failure() {
+    return false;
+  }, success_callback);
+};
