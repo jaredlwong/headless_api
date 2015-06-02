@@ -14,8 +14,10 @@ Quick-N-Dirty Use
 --------------------------------------------------------------------------------
 ### Requirements
 
+```
 brew install homebrew/versions/phantomjs198
 brew install casperjs --devel
+```
 
 ### Usage
 ```
