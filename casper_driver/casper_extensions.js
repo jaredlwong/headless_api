@@ -27,6 +27,7 @@ casper_module.Casper.prototype.waitForSuccessFailure =
     success_callback(success)
   }, function on_timeout() {
     this.echo(this.getHTML());
+    this.capture('debug.png');
     success_callback(success)
   });
 };
