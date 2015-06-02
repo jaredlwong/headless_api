@@ -1,40 +1,41 @@
 exports.name = 'evernote.com';
 exports.login = login;
-exports.reset = reset;
+exports.reset_password = reset_password;
 
 
-function login(casper, username, password, success_obj) {
+function login(casper, username, password, success_callback) {
   casper.thenOpen('https://www.evernote.com/Login.action');
+  casper.waitForUrl('https://www.evernote.com/Login.action');
 
-  casper.then(function() {
+  casper.waitFor(function() {
     this.fillNames("#login_form", {
       "username": username,
       "password": password,
     }, false);
+    return true;
   });
 
   casper.thenClick("#login");
 
   casper.waitForUrl(/evernote\.com\/Home\.action/,
     function _then() {
-      success_obj.value = true;
+      success_callback(true);
     }, function _on_timeout() {
-      success_obj.value = false;
+      success_callback(false);
     });
 };
 
 
-function reset(casper, username, old_password, new_password, success) {
-  var login_success = {};
-  login(username, old_password, login_success);
-  casper.then(function() {
-    if (!login_success.value) {
-      success.value = false;
+function reset_password(casper, username, old_password, new_password, success_callback) {
+  login(casper, username, old_password, function login_success(success) {
+    if (!success) {
+      success_callback(success);
       casper.bypass(1000);
     }
   });
 
   casper.thenOpen('https://www.evernote.com/secure/SecuritySettings.action');
+  casper.waitForUrl('https://www.evernote.com/secure/SecuritySettings.action');
 
   casper.thenClick("#security-change-password");
 
@@ -42,10 +43,7 @@ function reset(casper, username, old_password, new_password, success) {
     "password": old_password,
     "newPassword": new_password,
     "confirmPassword": new_password,
-  }, function _success_failure() {
-    return {
-      success: document.querySelector("#lightbox-frame") !== null,
-      failure: false,
-    };
-  }, success);
+  }, function success() {
+    return document.querySelector("#lightbox-frame") !== null;
+  }, null, success_callback);
 };

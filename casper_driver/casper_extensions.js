@@ -2,6 +2,7 @@
 // Another step may preempt this step.
 casper_module.Casper.prototype.waitForSuccessFailure =
     function(success_func, failure_func, success_callback) {
+  failure_func = failure_func || function() { return false; };
   var success = false;
   this.waitFor(function test_func() {
     if (this.evaluate(function() { typeof document === 'undefined' })) {
@@ -25,7 +26,7 @@ casper_module.Casper.prototype.waitForSuccessFailure =
   }, function then() {
     success_callback(success)
   }, function on_timeout() {
-    this.capture('amazon.png');
+    this.echo(this.getHTML());
     success_callback(success)
   });
 };
